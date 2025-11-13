@@ -12,7 +12,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
@@ -24,12 +23,10 @@ import java.util.concurrent.CompletableFuture;
 public class FraudService {
 
     private static final Logger logger = LoggerFactory.getLogger(FraudService.class);
-
     private final TransactionRepository transactionRepository;
     private final ReactiveRedisTemplate<String, String> redisTemplate;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final ObjectMapper objectMapper;
-
     private static final String VELOCITY_KEY = "velocity:user:%s";
     private static final String TOPIC = "fraud.transactions";
 
@@ -53,7 +50,6 @@ public class FraudService {
                 .map(velocity -> computeRiskScore(request, velocity))
                 .flatMap(riskScore -> {
                     String decision = riskScore > 0.8f ? "BLOCK" : riskScore > 0.5f ? "REVIEW" : "ALLOW";
-
                     String featuresJson;
                     try {
                         featuresJson = objectMapper.writeValueAsString(request.deviceInfo());
@@ -62,7 +58,6 @@ public class FraudService {
                         featuresJson = "{}";
                     }
 
-                    // ✅ FIXED: Don't set transactionId or createdAt - let DB generate them
                     TransactionEntity entity = TransactionEntity.builder()
                             .userId(UUID.fromString(request.userId()))
                             .bucketHour(bucketHour)
@@ -72,8 +67,8 @@ public class FraudService {
                             .riskScore(riskScore)
                             .decision(decision)
                             .features(featuresJson)
-                            // .transactionId(null)  ← Don't set - DB auto-generates
-                            // .createdAt(null)      ← Don't set - DB uses DEFAULT now()
+                            // .transactionId(null)  -- Don't set - DB auto-generates
+                            // .createdAt(null)      -- Don't set - DB uses DEFAULT now()
                             .build();
 
                     return transactionRepository.save(entity)

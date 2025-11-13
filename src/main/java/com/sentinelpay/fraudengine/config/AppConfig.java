@@ -1,4 +1,3 @@
-// src/main/java/com/sentinelpay/fraudengine/config/AppConfig.java
 package com.sentinelpay.fraudengine.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

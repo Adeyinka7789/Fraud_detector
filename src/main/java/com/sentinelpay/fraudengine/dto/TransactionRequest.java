@@ -1,4 +1,3 @@
-
 package com.sentinelpay.fraudengine.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
