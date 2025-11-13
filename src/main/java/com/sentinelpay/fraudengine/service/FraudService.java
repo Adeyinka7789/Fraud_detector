@@ -88,7 +88,7 @@ public class FraudService {
                             Map<String, Object> mlFeatures = tuple.getT4();
 
                             // Fusion logic: Combine ML score and rule score
-                            float finalRiskScore = fuseScores(mlRiskScore, ruleResult.totalScore(), velocity);
+                            float finalRiskScore = fuseScores(mlRiskScore, (float) ruleResult.totalScore(), velocity);
                             String decision = makeDecision(finalRiskScore, ruleResult);
 
                             logger.debug("Starting database save and Kafka publish...");
