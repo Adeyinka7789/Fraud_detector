@@ -447,8 +447,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👥 Authors
 
 **Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your Profile](https://linkedin.com/in/yourprofile)
+- GitHub: [@yourusername](https://github.com/Adeyinka7789)
+- LinkedIn: [Your Profile](www.linkedin.com/in/adeniran-michael-coren-mnse-90017a15b)
 
 ---
 
@@ -463,10 +463,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- 📧 Email: support@sentinelpay.com
+- 📧 Email: support@sentinelpay.com | Dotunm85@gmail.com
 - 💬 Discord: [Join our community](https://discord.gg/sentinelpay)
 - 📖 Documentation: [Full Docs](https://docs.sentinelpay.com)
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/sentinelpay-fraud-engine/issues)
+- 🐛 Issues: [GitHub Issues](https://github.com/Adeyinka7789/sentinelpay-fraud-engine/issues)
 
 ---
 
