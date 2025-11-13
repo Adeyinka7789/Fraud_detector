@@ -4,7 +4,7 @@
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Adeyinka7789/sentinelpay-fraud-engine)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.7-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
+[![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://openjdk.org/)
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-orange.svg)](https://www.tensorflow.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -205,7 +205,7 @@ Mono.zip(
 | Component | Technology | Version | Purpose |
 |-----------|-----------|---------|---------|
 | **Framework** | Spring Boot | 3.5.7 | Reactive REST API |
-| **Runtime** | Java | 21 LTS | High-performance JVM |
+| **Runtime** | Java | 17 LTS | High-performance JVM |
 | **Reactive** | Project Reactor | 3.7.x | Non-blocking I/O |
 | **Database** | PostgreSQL (TimescaleDB) | 16 | Time-series transactions |
 | **Cache** | Redis | 7.2 | In-memory feature store |
