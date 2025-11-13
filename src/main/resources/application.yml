@@ -2,7 +2,7 @@ spring:
   application:
     name: sentinelpay-fraud-engine
   profiles:
-    active: dev  # Use dev profile for local development
+    active: dev
 
 ---
 # Development profile - For local IntelliJ + Docker services
@@ -11,13 +11,13 @@ spring:
     activate:
       on-profile: dev
 
-  # R2DBC configuration for Postgres (Reactive)
+  # R2DBC configuration for Postgres (Reactive) - FIXED HOST
   r2dbc:
-    url: r2dbc:postgresql://localhost:5432/${POSTGRES_DB:frauddb}
-    username: ${POSTGRES_USER:fraud_user}
-    password: ${POSTGRES_PASSWORD:fraud_password}
+    url: r2dbc:postgresql://localhost:15432/frauddb
+    username: fraud_user
+    password: fraud_password
     pool:
-      initial-size: 10
+      initial-size: 5
       max-size: 20
       max-idle-time: 30m
 
@@ -26,16 +26,12 @@ spring:
     redis:
       host: localhost
       port: 6379
-      password: ${REDIS_PASSWORD:sentinelpay123}
+      password: sentinelpay123
       lettuce:
         pool:
-          max-active: 20
-          max-idle: 10
-          min-idle: 5
-          max-wait: 5000ms
-        shutdown-timeout: 100ms
-      connect-timeout: 2000ms
-      timeout: 1000ms
+          max-active: 10
+          max-idle: 5
+          min-idle: 2
 
   # Kafka configuration
   kafka:
@@ -44,170 +40,60 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
-        spring.json.add.type.headers: false
-    consumer:
-      group-id: fraud-detection-group
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "com.sentinelpay.fraud.*"
+        spring.json.trusted.packages: "*"
+    properties:
+      # Pre-warm producer connections
+      connections.max.idle.ms: 540000
+      metadata.max.age.ms: 300000
 
   # Exclude Cassandra autoconfiguration
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.cassandra.CassandraReactiveDataAutoConfiguration
 
 # Management & Health
 management:
-  health:
-    cassandra:
-      enabled: false  # We're not using Cassandra
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics
   endpoint:
     health:
       show-details: always
-      show-components: always
-    metrics:
-      enabled: true
-  metrics:
-    tags:
-      application: ${spring.application.name}
-    distribution:
-      percentiles-histogram:
-        http.server.requests: true
 
 ---
-# Production profile - For Docker deployment
-spring:
-  config:
-    activate:
-      on-profile: prod
-
-  # R2DBC configuration for Postgres (Production)
-  r2dbc:
-    url: r2dbc:postgresql://${POSTGRES_HOST:postgres}:${POSTGRES_PORT:5432}/${POSTGRES_DB:frauddb}
-    username: ${POSTGRES_USER:fraud_user}
-    password: ${POSTGRES_PASSWORD:fraud_password}
-    pool:
-      initial-size: 20
-      max-size: 50
-      max-idle-time: 30m
-
-  # Redis configuration (Production)
-  data:
-    redis:
-      host: ${REDIS_HOST:redis}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-      lettuce:
-        pool:
-          max-active: 20
-          max-idle: 10
-          min-idle: 5
-          max-wait: 5000ms
-        shutdown-timeout: 100ms
-      connect-timeout: 2000ms
-      timeout: 1000ms
-
-  # Kafka configuration (Production)
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        spring.json.add.type.headers: false
-    consumer:
-      group-id: fraud-detection-group
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "com.sentinelpay.fraud.*"
-
-  # Exclude Cassandra
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.cassandra.CassandraReactiveDataAutoConfiguration
-
-management:
-  health:
-    cassandra:
-      enabled: false
-
----
-# Resilience4j Configuration (All profiles)
+# Resilience4j Configuration
 resilience4j:
   circuitbreaker:
     instances:
       mlService:
-        register-health-indicator: true
-        sliding-window-type: COUNT_BASED
-        sliding-window-size: 20
-        minimum-number-of-calls: 10
-        permitted-number-of-calls-in-half-open-state: 5
-        wait-duration-in-open-state: 15s
+        sliding-window-size: 10
         failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
       ruleEngine:
-        register-health-indicator: true
-        sliding-window-type: COUNT_BASED
-        sliding-window-size: 50
-        minimum-number-of-calls: 20
+        sliding-window-size: 20
         failure-rate-threshold: 30
+        wait-duration-in-open-state: 5s
+      fraudEngine:
+        sliding-window-size: 20
+        failure-rate-threshold: 20
+        wait-duration-in-open-state: 5s
   timelimiter:
     instances:
       mlService:
         timeout-duration: 5s
       ruleEngine:
-        timeout-duration: 2s
-
----
-# Application Configuration (All profiles)
-sentinelpay:
-  fraud:
-    decision-timeout-ms: 90000
-    ml-service:
-      url: ${ML_SERVICE_URL:http://localhost:8501}
-      timeout-ms: 5000
-    rule-engine:
-      timeout-ms: 2000
-    behavioral-analyzer:
-      timeout-ms: 3000
-    cache:
-      ttl-minutes: 60
-    velocity:
-      windows:
-        - duration: 1h
-          max-transactions: 10
-          ttl: 65m
-        - duration: 24h
-          max-transactions: 100
-          ttl: 25h
-        - duration: 7d
-          max-transactions: 500
-          ttl: 8d
-    blacklist:
-      ttl: 30d
+        timeout-duration: 500ms
+      fraudEngine:
+        timeout-duration: 10s
 
 ---
 # Logging Configuration
 logging:
   level:
-    com.sentinelpay.fraud: DEBUG
-    org.springframework.data.redis: WARN
-    org.springframework.data.r2dbc: DEBUG
-    org.apache.kafka: WARN
-    io.r2dbc.postgresql: INFO
-  pattern:
-    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+    com.sentinelpay.fraudengine.service: DEBUG
+    org.springframework.data.r2dbc: WARN
+    io.github.resilience4j: INFO
 
 ---
 # Server Configuration
