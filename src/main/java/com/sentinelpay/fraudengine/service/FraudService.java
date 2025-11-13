@@ -38,6 +38,7 @@ public class FraudService {
     private final MLServiceClient mlServiceClient;
     private final RuleEngine ruleEngine;
     private final ReactiveCircuitBreaker fraudCircuitBreaker;
+    private final AlertService alertService;
 
     public FraudService(
             TransactionRepository transactionRepository,
@@ -46,6 +47,7 @@ public class FraudService {
             ObjectMapper objectMapper,
             MLServiceClient mlServiceClient,
             RuleEngine ruleEngine,
+            AlertService alertService,
             ReactiveCircuitBreakerFactory circuitBreakerFactory) {
         this.transactionRepository = transactionRepository;
         this.redisTemplate = redisTemplate;
@@ -53,6 +55,7 @@ public class FraudService {
         this.objectMapper = objectMapper;
         this.mlServiceClient = mlServiceClient;
         this.ruleEngine = ruleEngine;
+        this.alertService = alertService;
         this.fraudCircuitBreaker = circuitBreakerFactory.create("fraudEngine");
     }
 
@@ -170,9 +173,11 @@ public class FraudService {
                             now
                     );
 
+                    alertService.sendFraudAlert(savedEntity)
+                            .subscribe();
+
                     // Non-blocking Kafka publish - don't wait for completion
                     publishToKafkaNonBlocking(savedEntity);
-
                     return Mono.just(response);
                 })
                 .doOnError(e -> logger.error("Error during save/publish for transaction: {}", e.getMessage()));

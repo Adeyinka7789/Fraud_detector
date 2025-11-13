@@ -46,6 +46,11 @@ spring:
       connections.max.idle.ms: 540000
       metadata.max.age.ms: 300000
 
+  # Scheduling Configuration
+  task:
+    scheduling:
+      enabled: true
+
   # Exclude Cassandra autoconfiguration
   autoconfigure:
     exclude:
@@ -91,11 +96,47 @@ resilience4j:
 # Logging Configuration
 logging:
   level:
+    com.sentinelpay.fraudengine: DEBUG
     com.sentinelpay.fraudengine.service: DEBUG
     org.springframework.data.r2dbc: WARN
     io.github.resilience4j: INFO
+    org.apache.kafka: WARN
 
 ---
 # Server Configuration
 server:
   port: 8080
+
+---
+# Application-specific configurations (FIXED SECTION)
+# TensorFlow Model Path
+tensorflow:
+  model:
+    path: "src/main/resources/models/fraud_model"
+
+# Alerting Configuration (Slack, Email, Phone)
+alerts:
+  slack:
+    webhook: ""
+  email:
+    endpoint: ""
+  fraud-team:
+    phone: "${FRAUD_TEAM_PHONE:}"
+
+# ML Training Service Configuration
+ml:
+  training:
+    service:
+      url: "http://localhost:8000"
+  retraining:
+    enabled: true
+
+# Fraud Detection Configuration
+fraud:
+  detection:
+    risk-threshold:
+      block: 0.8
+      review: 0.4
+    rules:
+      enabled: true
+      custom-rules-path: "classpath:rules/"
