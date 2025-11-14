@@ -91,6 +91,15 @@ resilience4j:
         timeout-duration: 500ms
       fraudEngine:
         timeout-duration: 10s
+  # Rate Limiting Configuration (NEW)
+  ratelimiter:
+    instances:
+      fraudApi:
+        limit-for-period: 60
+        limit-refresh-period: 1m
+        timeout-duration: 0
+        allow-health-indicator-to-fail: false
+        subscribe-for-events: true
 
 ---
 # Logging Configuration
@@ -140,3 +149,17 @@ fraud:
     rules:
       enabled: true
       custom-rules-path: "classpath:rules/"
+
+# Security Configuration (NEW)
+security:
+  jwt:
+    secret: "${JWT_SECRET:your-super-secret-jwt-key-min-256-bits-long-for-sentinelpay-fraud-engine}"
+    expiration: 86400000 # 24 hours in milliseconds
+
+# CORS Configuration (NEW)
+cors:
+  allowed-origins: "http://localhost:3000,https://your-frontend.com"
+  allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+  allowed-headers: "*"
+  allow-credentials: true
+  max-age: 3600
